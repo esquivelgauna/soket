@@ -137,6 +137,7 @@ module.exports = function (server, session, sharedsession) {
 				}
 			});
 		});
+
 		socket.on('Venta', (data) => {
 			console.log('VENTA .... ', data);
 			connection.query('SELECT * FROM v_orden WHERE vendedor = ? AND orden = ? ', [sockets[socket.id], data.venta], function (err, result) {
@@ -194,6 +195,7 @@ module.exports = function (server, session, sharedsession) {
 				}
 			}); 
 		});
+		
 		socket.on('slice upload', (data) => {
 			console.log("New slice file:", data.name);
 			if (!socket.handshake.session.chats[data.chat]) {

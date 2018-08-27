@@ -19,6 +19,10 @@ app.get('/hello', function (req, res) {
 	res.status(200).send("Hello World!");
 });
 
-server.listen(3000, function () {
+app.get('/', function (req, res) {
+	res.status(200).send("Bienvenido!!");
+});
+
+server.listen(8080, function () {
 	console.log("Servidor corriendo en http://localhost:3000");
 });
