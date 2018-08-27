@@ -1,7 +1,7 @@
 
 var query_builder = require('query_builder');
 var dbconn_default = {
-	host: "niurons.com.mx",
+	host: "108.179.194.22",
 	user: "niuronsc_Dev",
 	pass: "**niuronsdev2017",
 	dbase: "niuronsc_db_niurons"
