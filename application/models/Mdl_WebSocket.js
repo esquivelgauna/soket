@@ -15,6 +15,7 @@ exports.Login = (tokenid, callback) => {
 		limit: 1,
 		show_query: false
 	}, (err, result) => {
+		if (err) return console.log(err);
 		callback(result);
 	});
 }
@@ -26,6 +27,7 @@ exports.Chats = (id, callback) => {
 		},
 		show_query: false
 	}, function (err, result) {
+		if (err) return console.log(err);
 		callback(result);
 	});
 }
@@ -36,12 +38,13 @@ exports.Messages = (id, callback) => {
 		//query: 'SELECT * FROM (t_dat_mensajes message INNER JOIN t_dat_files_message ffile ON (message.id_mensaje = ffile.f_id_message) ) WHERE message.f_id_inbox = '+id+' ORDER BY id_mensaje DESC LIMIT 10'
 
 	}, (err, result) => {
+		if (err) return console.log(err);
 		//console.log(result);
 		let cont = 0;
 		let contFiles = 0;
-		for( message in result ){
-			if (result[message].files){
-				cont ++;
+		for (message in result) {
+			if (result[message].files) {
+				cont++;
 			}
 		}
 		for (message in result) {
@@ -55,18 +58,18 @@ exports.Messages = (id, callback) => {
 						},
 						show_query: false
 					}, (err, files) => {
-						if (err) console.log(err);
-						contFiles ++;
+						if (err) return console.log(err);
+						contFiles++;
 						result[index].files = files;
-						console.log( contFiles , cont );
+						console.log(contFiles, cont);
 						//console.log( Object.keys(result).length );
-						if ( contFiles == cont) {
+						if (contFiles == cont) {
 							console.log("All files in messages");
 							callback(result);
 						}
 					});
 				})(message));
-			}else{
+			} else {
 				callback(result);
 			}
 		}
