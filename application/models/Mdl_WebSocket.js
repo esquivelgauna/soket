@@ -117,7 +117,7 @@ exports.GetInbox = (data, callback) => {
 			},
 			show_query: true
 		}, (err, result) => {
-			if (err) console.log(err);
+			if (err) return console.log(err);
 			callback(result)
 		});
 
@@ -125,7 +125,7 @@ exports.GetInbox = (data, callback) => {
 		mysql.native_query({
 			query: `SELECT * FROM t_dat_inbox WHERE ( ( f_id_usuario_a = ${data.transmitter} and f_id_usuario_b = ${data.receiver} ) or ( f_id_usuario_a = ${data.receiver} and f_id_usuario_b =  ${data.transmitter} ) ) `
 		}, function (err, result) {
-			if (err) console.log(err);
+			if (err) return console.log(err);
 			callback(result)
 		});
 	}

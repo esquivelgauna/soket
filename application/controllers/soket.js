@@ -158,11 +158,10 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('message', function (data, archivos) {
 			console.log(data);
-			//transmitter, receiver, message, ip, files, callback
+			//transmitter, receiver, message, ip, files, callback 
 			model.PrivateMessage(socket.handshake.session.userdata['f_id_usuario'], data.reciver, data.mensaje, socket.handshake.session.userdata['ip'], data.files, ( query ) => {
 				console.log(data);
 				let res;
-
 				console.log( socket.handshake.session.chats[query.idInbox] );
 				if (socket.handshake.session.chats[query.idInbox]) {
 					if (socket.handshake.session.chats[query.idInbox].files) {
