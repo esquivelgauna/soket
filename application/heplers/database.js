@@ -2,9 +2,9 @@
 var query_builder = require('query_builder');
 var dbconn_default = {
 	host: "niurons.com.mx",
-	user: "**niuronsdev2017",
+	user: "niuronsc_Dev",
 	dbase: "niuronsc_db_niurons",
-	pass: ""
+	pass: "**niuronsdev2017"
 };
 
 // var dbconn_default = {
