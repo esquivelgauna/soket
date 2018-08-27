@@ -42,30 +42,35 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('Login', function (data) {
 			model.Login(data.token, (result) => {
-				if (result.length == 1) {
-					result = JSON.parse(JSON.stringify(result[0]));
-					if (users[result.f_id_usuario] == null) {
-						users[result.f_id_usuario] = {
-							id: result.f_id_usuario,
-							sid: socket.id,
-							token: result.token
+				if( result ){
+					if (result.length == 1) {
+						result = JSON.parse(JSON.stringify(result[0]));
+						if (users[result.f_id_usuario] == null) {
+							users[result.f_id_usuario] = {
+								id: result.f_id_usuario,
+								sid: socket.id,
+								token: result.token
+							}
+							socket.handshake.session.userdata = result;
+							socket.handshake.session.chats = {};
+							socket.handshake.session.save();
+							sockets[socket.id] = result['f_id_usuario'];
+							console.log('No registered..\n');
+						} else {
+							users[result['f_id_usuario']].sid = socket.id;
+							console.log('Ya regsitrado');
 						}
-						socket.handshake.session.userdata = result;
-						socket.handshake.session.chats = {};
-						socket.handshake.session.save();
-						sockets[socket.id] = result['f_id_usuario'];
-						console.log('No registered..\n');
-					} else {
-						users[result['f_id_usuario']].sid = socket.id;
-						console.log('Ya regsitrado');
+						model.Chats(result['f_id_usuario'], (chats) => {
+							if (chats) {
+								socket.emit('chats', chats);
+							}
+						});
+	
 					}
-					model.Chats(result['f_id_usuario'], (chats) => {
-						if (chats) {
-							socket.emit('chats', chats);
-						}
-					});
-
+				}else{
+					console.log("User not registred!!..");
 				}
+				
 			});
 		});
 
@@ -195,7 +200,7 @@ module.exports = function (server, session, sharedsession) {
 				}
 			}); 
 		});
-		
+
 		socket.on('slice upload', (data) => {
 			console.log("New slice file:", data.name);
 			if (!socket.handshake.session.chats[data.chat]) {
