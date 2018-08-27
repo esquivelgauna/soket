@@ -1,10 +1,11 @@
 
 var query_builder = require('query_builder');
 var dbconn_default = {
-	host: "niurons.com.mx",
+	host: "http://niurons.com.mx",
 	user: "niuronsc_Dev",
-	dbase: "niuronsc_db_niurons",
-	pass: "**niuronsdev2017"
+	pass: "**niuronsdev2017",
+	dbase: "niuronsc_db_niurons"
+	
 };
 
 // var dbconn_default = {
