@@ -41,6 +41,7 @@ module.exports = function (server, session, sharedsession) {
 		console.log('New user connected by WebSockets \n');
 
 		socket.on('Login', function (data) {
+			console.log(data);
 			model.Login(data.token, (result) => {
 				if( result ){
 					if (result.length == 1) {
