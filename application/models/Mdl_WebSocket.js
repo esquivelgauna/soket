@@ -1,8 +1,7 @@
+
+
 var mysql = require('../heplers/database');
-
 var fs = require('fs');
-const crypto = require('crypto');
-
 var pathTemp = "./Temp/";
 var chatFolder = "./assets/uploads/chats/chat";
 
