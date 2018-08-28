@@ -9,6 +9,13 @@ var sharedsession = require("express-socket.io-session");
 var app = express();
 var server = require('http').Server(app);
 
+const os = require('os');
+let addres = os.networkInterfaces();
+console.log(  addres  );
+console.log(  addres['Conexión de área local'][0].mac  );
+
+
+
 require('./application/controllers/soket')(server ,session, sharedsession );
 
 //app.use(express.static('public'));
