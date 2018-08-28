@@ -11,8 +11,9 @@ var server = require('http').Server(app);
 
 const os = require('os');
 let addres = os.networkInterfaces();
-console.log(  addres  );
-console.log(  addres['Conexión de área local'][0].mac  );
+let keys = Object.keys(addres);
+console.log(   keys[0], addres  );
+console.log(  addres[keys[1]][0].address  );
 
 
 
