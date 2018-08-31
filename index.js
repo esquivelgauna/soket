@@ -26,7 +26,7 @@ app.use('/chat', express.static(__dirname + '/assets/uploads/chats'));
 app.get('/hello', function (req, res) {
 	res.status(200).send("Hello World!");
 });
-
+ 
 app.get('/', function (req, res) {
 	res.status(200).send("Bienvenido!!");
 });

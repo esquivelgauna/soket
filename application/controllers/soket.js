@@ -16,7 +16,7 @@ module.exports = function (server, session, sharedsession) {
 			slice: 0,
 			status: 1,
 		};
- 
+
 	var ChatNiurons = {
 		usuarios: {
 			id: null,
@@ -43,7 +43,7 @@ module.exports = function (server, session, sharedsession) {
 		socket.on('Login', function (data) {
 			console.log(data);
 			model.Login(data.token, (result) => {
-				if( result ){
+				if (result) {
 					if (result.length == 1) {
 						result = JSON.parse(JSON.stringify(result[0]));
 						if (users[result.f_id_usuario] == null) {
@@ -66,18 +66,18 @@ module.exports = function (server, session, sharedsession) {
 								socket.emit('chats', chats);
 							}
 						});
-	
+
 					}
-				}else{
+				} else {
 					console.log("User not registred!!..");
 				}
-				
+
 			});
 		});
 
 		socket.on('Chat', (data) => {
 			model.Messages(data.id, (messages) => {
-				console.log( messages.length );
+				//console.log( messages );
 				if (messages.length > 0) {
 					socket.emit('Messages', messages);
 				} else {
@@ -159,22 +159,22 @@ module.exports = function (server, session, sharedsession) {
 		socket.on('message', function (data, archivos) {
 			console.log(data);
 			//transmitter, receiver, message, ip, files, callback 
-			model.PrivateMessage(socket.handshake.session.userdata['f_id_usuario'], data.reciver, data.mensaje, socket.handshake.session.userdata['ip'], data.files, ( query ) => {
+			model.PrivateMessage(socket.handshake.session.userdata['f_id_usuario'], data.reciver, data.mensaje, socket.handshake.session.userdata['ip'], data.files, (query) => {
 				console.log(data);
 				let res;
-				console.log( socket.handshake.session.chats[query.idInbox] );
+				console.log(socket.handshake.session.chats[query.idInbox]);
 				if (socket.handshake.session.chats[query.idInbox]) {
 					if (socket.handshake.session.chats[query.idInbox].files) {
 						console.log("tenemos archivos ");
 						model.PutFiles(socket.handshake.session.chats[query.idInbox].files, query.idInbox, query.idMessage, (savedFiles) => {
 							delete socket.handshake.session.chats[query.idInbox];
-							console.log( savedFiles );
+							console.log(savedFiles);
 							res = {
 								idChat: query.idInbox,
 								idMessage: query.idMessage,
 								message: data.mensaje,
 								transmitter: socket.handshake.session.userdata['f_id_usuario'],
-								files : savedFiles,
+								files: savedFiles,
 								date: new Date()
 							}
 							socket.emit('message', res);
@@ -191,14 +191,25 @@ module.exports = function (server, session, sharedsession) {
 						message: data.mensaje,
 						transmitter: socket.handshake.session.userdata['f_id_usuario'],
 						date: new Date(),
-						files : {}
+						files: {}
 					}
 					if (users[data.reciver] != undefined) {
 						socket.broadcast.to(users[data.reciver].sid).emit('new message', res);
 					}
 					socket.emit('message', res);
 				}
-			}); 
+			});
+		});
+		socket.on('GetMessages', function (data) {
+			if (data.message && data.chat) {
+				model.GetMessages(data, (messages) => {
+					socket.emit("SetMessages", {
+						chat: data.chat,
+						messages: messages
+					});
+					//console.log("Messages:",messages[0]);
+				});
+			}
 		});
 
 		socket.on('slice upload', (data) => {
@@ -230,7 +241,11 @@ module.exports = function (server, session, sharedsession) {
 					let name = data.chat + "-" + random + "-" + data.name;
 
 					fs.writeFile((pathTemp + name), fileBuffer, (err) => {
-						socket.handshake.session.chats[data.chat].files[data.name] = {name: data.name , path : name , size: files[data.chat][data.name].size };
+						socket.handshake.session.chats[data.chat].files[data.name] = {
+							name: data.name,
+							path: name,
+							size: files[data.chat][data.name].size
+						};
 						//console.log('Archivos ', socket.handshake.session.chats);
 						if (err) console.log(err);
 						delete files[data.chat][data.name];
@@ -273,7 +288,6 @@ module.exports = function (server, session, sharedsession) {
 				}
 			}
 		});
-
 		socket.on('disconnect', () => {
 			delete users[sockets[socket.id]];
 			delete sockets[socket.id];

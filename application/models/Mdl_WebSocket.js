@@ -1,5 +1,3 @@
-
-
 var mysql = require('../heplers/database');
 var fs = require('fs');
 var pathTemp = "./Temp/";
@@ -46,31 +44,33 @@ exports.Messages = (id, callback) => {
 				cont++;
 			}
 		}
-		for (message in result) {
-			if (result[message].files) {
-				//console.log('Index:', message);
-				(((index) => {
-					mysql.select({
-						table: 't_dat_files_message',
-						conditions: {
-							f_id_message: result[index].id
-						},
-						show_query: false
-					}, (err, files) => {
-						if (err) return console.log(err);
-						contFiles++;
-						result[index].files = files;
-						console.log(contFiles, cont);
-						//console.log( Object.keys(result).length );
-						if (contFiles == cont) {
-							console.log("All files in messages");
-							callback(result);
-						}
-					});
-				})(message));
-			} else {
-				callback(result);
+		if (cont > 0) {
+			for (message in result) {
+				if (result[message].files) {
+					//console.log('Index:', message);
+					(((index) => {
+						mysql.select({
+							table: 't_dat_files_message',
+							conditions: {
+								f_id_message: result[index].id
+							},
+							show_query: false
+						}, (err, files) => {
+							if (err) return console.log(err);
+							contFiles++;
+							result[index].files = files;
+							//console.log(contFiles, cont);
+							//console.log( Object.keys(result).length );
+							if (contFiles == cont) {
+								//console.log("All files in messages");
+								callback(result);
+							}
+						});
+					})(message));
+				}
 			}
+		} else {
+			callback(result);
 		}
 	});
 
@@ -202,7 +202,58 @@ exports.PutFiles = (files, idInbox, idMessage, callback) => {
 		})(index0));
 	}
 }
-
+exports.GetFiles = (messages, callback) => {
+	messages = messages[0];
+	//console.log( messages );
+	let files = 0;
+	let contFiles = 0;
+	for (message in messages) {
+		//console.log( messages[message] );
+		if (messages[message].files) {
+			//console.log('file');
+			files++;
+		}
+	}
+	if (files > 0) {
+		console.log('Load Files');
+		for (message in messages) {
+			if (messages[message].files) {
+				(((index) => {
+					mysql.select({
+						table: 't_dat_files_message',
+						conditions: {
+							f_id_message: messages[index].id
+						},
+						show_query: false
+					}, (err, messageFiles) => {
+						if (err) return console.log(err);
+						contFiles++;
+						messages[index].files = messageFiles;
+						if (contFiles == files) {
+							console.log("All files");
+							callback(messages);
+						}
+					});
+				})(message));
+			}
+		}
+	} else {
+		console.log("No Files");
+		callback(messages);
+	}
+}
+exports.GetMessages = (data, callback) => {
+	console.log(data);
+	mysql.native_query({
+		query: "CALL s_messages(" + data.message + "," + data.chat + " )"
+		//query: 'SELECT f_id_usuario AS id_usuario, id_mensaje AS id  ,mensaje,fecha_msj, files (SELECT * FROM t_dat_mensajes WHERE id_mensaje < ' + data.message + ' AND f_id_inbox = '+ data.chat +' ORDER BY id_mensaje DESC LIMIT 10 ) AS qq ORDER BY id ASC ' 
+	}, (err, result) => {
+		if (err) return console.log(err);
+		this.GetFiles( result , (messages)=>{
+			callback(messages);
+		});
+	});
+}
 exports.ResetCounter = (idInbox, transmitter) => {
 	this.GetInbox({
 		idInbox: idInbox
