@@ -66,7 +66,6 @@ module.exports = function (server, session, sharedsession) {
 								socket.emit('chats', chats);
 							}
 						});
-
 					}
 				} else {
 					console.log("User not registred!!..");
