@@ -109,48 +109,37 @@ module.exports = function (server, session, sharedsession) {
 			}
 		});
 
-		socket.on('Compras', (data) => {
-			console.log('Compras .... ');
-			mysql.select({
-				table: 'v_orden',
-				conditions: {
-					comprador: sockets[socket.id]
-				},
-				show_query: true
-			}, function (err, result) {
-				if (result.length != 0) {
-					socket.emit('Compras', result);
+		socket.on('Purchases', () => {
+			console.log('Purchases .... ');
+			model.Purchases(sockets[socket.id], (purchases) => {
+				if (purchases.length != 0) {
+					socket.emit('Purchases', purchases);
 				} else {
-					socket.emit('Compras', {});
+					socket.emit('Purchases', {});
+				}
+			});
+
+
+		});
+
+		socket.on('Sales', (data) => {
+			console.log('Sales .... ');
+			model.Sales( sockets[socket.id] , (Sales)=>{
+				if (Sales.length != 0) {
+					socket.emit('Sales', Sales);
+				} else {
+					socket.emit('Sales', {});
 				}
 			});
 		});
 
-		socket.on('Ventas', (data) => {
-			console.log('Ventas .... ');
-			mysql.select({
-				table: 'v_orden',
-				conditions: {
-					vendedor: sockets[socket.id]
-				},
-				show_query: true
-			}, function (err, result) {
-				if (result.length != 0) {
-					socket.emit('Ventas', result);
+		socket.on('Sale', (data) => {
+			console.log('Sale .... ', data);
+			model.Sale(  sockets[socket.id], data.venta , (Sale)=>{
+				if (Sale.length != 0) {
+					socket.emit('Sale', Sale[0]);
 				} else {
-					socket.emit('Ventas', {});
-				}
-			});
-		});
-
-		socket.on('Venta', (data) => {
-			console.log('VENTA .... ', data);
-			connection.query('SELECT * FROM v_orden WHERE vendedor = ? AND orden = ? ', [sockets[socket.id], data.venta], function (err, result) {
-				console.log(result);
-				if (result.length != 0) {
-					socket.emit('Venta', result[0]);
-				} else {
-					socket.emit('Venta', {});
+					socket.emit('Sale', {});
 				}
 			});
 		});

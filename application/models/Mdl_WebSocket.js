@@ -249,11 +249,48 @@ exports.GetMessages = (data, callback) => {
 		//query: 'SELECT f_id_usuario AS id_usuario, id_mensaje AS id  ,mensaje,fecha_msj, files (SELECT * FROM t_dat_mensajes WHERE id_mensaje < ' + data.message + ' AND f_id_inbox = '+ data.chat +' ORDER BY id_mensaje DESC LIMIT 10 ) AS qq ORDER BY id ASC ' 
 	}, (err, result) => {
 		if (err) return console.log(err);
-		this.GetFiles( result , (messages)=>{
+		this.GetFiles(result, (messages) => {
 			callback(messages);
 		});
 	});
 }
+
+exports.Purchases = (id, callback) => {
+	mysql.select({
+		table: 'v_orden',
+		conditions: {
+			comprador: id
+		},
+		show_query: true
+	}, function (err, result) {
+		callback(result);
+	});
+}
+exports.Sales = (id , callback)=>{
+	mysql.select({
+		table: 'v_orden',
+		conditions: {
+			vendedor: id 
+		},
+		show_query: true
+	}, function (err, result) {
+		callback(result);
+	});
+}
+exports.Sale = ( seller , sale , callback )=>{ 
+	mysql.select({
+		table: 'v_orden',
+		conditions: {
+			vendedor: seller,
+			orden : sale
+		},
+		show_query: true
+	}, function (err, result) {
+		callback(result);
+	});
+
+}
+
 exports.ResetCounter = (idInbox, transmitter) => {
 	this.GetInbox({
 		idInbox: idInbox
