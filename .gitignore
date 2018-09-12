@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 assets/uploads
 Temp
+
 # Runtime data
 pids
 *.pid
