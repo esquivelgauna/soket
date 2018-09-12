@@ -3,7 +3,7 @@ module.exports = function (server, session, sharedsession) {
 	var fs = require('fs');
 	var mysql = require('../heplers/database');
 	var model = require('../models/Mdl_WebSocket');
-	var pathTemp = "./Temp/";
+	var pathTemp = "./temp/";
 	var users = {};
 	var sockets = {};
 	var random, fileBuffer;

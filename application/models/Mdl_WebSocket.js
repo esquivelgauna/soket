@@ -1,7 +1,7 @@
 var mysql = require('../heplers/database');
 var fs = require('fs');
-var pathTemp = "./Temp/";
-var chatFolder = "./assets/uploads/chats/chat";
+var pathTemp = "./temp/";
+var chatFolder = "./files";
 
 exports.Login = (tokenid, callback) => {
 	mysql.select({
