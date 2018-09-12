@@ -9,6 +9,10 @@ process.env.db_user = process.env.db_user || "root";
 process.env.db_pass = process.env.db_pass || "";
 
 console.log(process.env.PORT)
+console.log(process.env.db_host)
+console.log(process.env.db_name)
+console.log(process.env.db_pass)
+console.log(process.env.db_user)
 
 //====Crear carpetas por defecto si no existen =====
 const folders = {
@@ -27,4 +31,4 @@ for (let index in folders) {
     }
 }
 
-  
+ 
