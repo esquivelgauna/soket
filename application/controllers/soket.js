@@ -2,8 +2,7 @@ module.exports = function (server, session, sharedsession) {
 	var io = require('socket.io')(server);
 	var fs = require('fs');
 	var mysql = require('../heplers/database');
-	var model = require('../models/Mdl_WebSocket');
-	var pathTemp = "./temp/";
+	var model = require('../models/Mdl_WebSocket'); 
 	var users = {};
 	var sockets = {};
 	var random, fileBuffer;
@@ -17,26 +16,7 @@ module.exports = function (server, session, sharedsession) {
 			status: 1,
 		};
 
-	var ChatNiurons = {
-		usuarios: {
-			id: null,
-			nombre: null,
-			nickname: null,
-			descripcion: null,
-
-			amigos: {
-				usuario1: {},
-				ususario2: {}
-			},
-			inbox: {
-				SendMessage: null,
-				ReciveMessage: null,
-				SendFiles: null,
-			}
-		}
-	}
 	io.use(sharedsession(session));
-
 	io.on('connection', function (socket) {
 		console.log('New user connected by WebSockets \n');
 
@@ -195,7 +175,6 @@ module.exports = function (server, session, sharedsession) {
 						chat: data.chat,
 						messages: messages
 					});
-					//console.log("Messages:",messages[0]);
 				});
 			}
 		});
@@ -228,7 +207,7 @@ module.exports = function (server, session, sharedsession) {
 					random = Math.floor((Math.random() * 1000) + 1);
 					let name = data.chat + "-" + random + "-" + data.name;
 
-					fs.writeFile((pathTemp + name), fileBuffer, (err) => {
+					fs.writeFile( ( process.env.temp + "/" + name), fileBuffer, (err) => {
 						socket.handshake.session.chats[data.chat].files[data.name] = {
 							name: data.name,
 							path: name,
@@ -239,7 +218,7 @@ module.exports = function (server, session, sharedsession) {
 						delete files[data.chat][data.name];
 						if (err) return socket.emit('upload error');
 						socket.emit('end upload');
-					});
+					}); 
 
 					console.log("Terminó de subirse el archivo:" + data.name);
 					socket.emit('end upload');

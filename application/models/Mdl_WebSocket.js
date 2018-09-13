@@ -1,7 +1,6 @@
-var mysql = require('../heplers/database');
-var fs = require('fs');
-var pathTemp = "./temp/";
-var chatFolder = "./files";
+const mysql = require('../heplers/database');
+const fs = require('fs');
+const path = require('path');
 
 exports.Login = (tokenid, callback) => {
 	mysql.select({
@@ -171,13 +170,13 @@ exports.PutFiles = (files, idInbox, idMessage, callback) => {
 	for (index0 in files) {
 		(((index) => {
 			//console.log(index);
-			let newPath = chatFolder + "-" + idInbox;
-			if (!fs.existsSync(newPath)) {
-				fs.mkdirSync(newPath);
+			let chatFiles = process.env.chatFiles + "-" + idInbox;
+			if (!fs.existsSync(path.resolve(process.env.files, chatFiles))) {
+				fs.mkdirSync(path.resolve(process.env.files, chatFiles));
 			}
-			newPath = newPath + "/" + files[index].path;
+			let newPath = process.env.files + "/" + chatFiles + "/" + files[index].path;
 			//Move file
-			fs.rename(pathTemp + files[index].path, newPath, (err) => {
+			fs.rename(process.env.temp +  "/"+ files[index].path, newPath, (err) => {
 				if (err) return console.log(err);
 			});
 			mysql.insert({
@@ -266,23 +265,23 @@ exports.Purchases = (id, callback) => {
 		callback(result);
 	});
 }
-exports.Sales = (id , callback)=>{
+exports.Sales = (id, callback) => {
 	mysql.select({
 		table: 'v_orden',
 		conditions: {
-			vendedor: id 
+			vendedor: id
 		},
 		show_query: true
 	}, function (err, result) {
 		callback(result);
 	});
 }
-exports.Sale = ( seller , sale , callback )=>{ 
+exports.Sale = (seller, sale, callback) => {
 	mysql.select({
 		table: 'v_orden',
 		conditions: {
 			vendedor: seller,
-			orden : sale
+			orden: sale
 		},
 		show_query: true
 	}, function (err, result) {
