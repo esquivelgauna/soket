@@ -3,10 +3,10 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-assets/uploads
-temp/*.*
-files/*.*
+yarn-error.log* 
+
+uploads/temp/*
+uploads/files/*
 oc
 # Runtime data
 pids
