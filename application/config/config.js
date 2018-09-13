@@ -12,9 +12,9 @@ process.env.db_pass = process.env.db_pass || "";
 console.log('Server Port:', process.env.PORT)
 console.log('DB Host:', process.env.db_host)
 console.log('DB Name:', process.env.db_name)
-console.log('DB Password:', process.env.db_pass)
+//console.log('DB Password:', process.env.db_pass)
 console.log('DB User:', process.env.db_user)
-
+ 
 //============== Uploads =======================
 process.env.chatFiles = process.env.chatFiles || "chatFiles";
 const uploads = {
