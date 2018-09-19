@@ -1,8 +1,11 @@
 module.exports = function (server, session, sharedsession) {
+	const Chat = require('../class/Chat').Chat;
+	var chat = new Chat();
+	var socketioJwt = require("socketio-jwt");
 	var io = require('socket.io')(server);
 	var fs = require('fs');
 	var mysql = require('../heplers/database');
-	var model = require('../models/Mdl_WebSocket'); 
+	var model = require('../models/Mdl_WebSocket');
 	var users = {};
 	var sockets = {};
 	var random, fileBuffer;
@@ -15,43 +18,35 @@ module.exports = function (server, session, sharedsession) {
 			slice: 0,
 			status: 1,
 		};
-
 	io.use(sharedsession(session));
+
+	io.use(socketioJwt.authorize({
+		secret: 'NvTfMrR',
+		handshake: true
+	}));
 	io.on('connection', function (socket) {
 		console.log('New user connected by WebSockets \n');
+		console.log('Usuario:', socket.decoded_token.data.nombre);
 
-		socket.on('Login', function (data) {
-			console.log(data);
-			model.Login(data.token, (result) => {
-				if (result) {
-					if (result.length == 1) {
-						result = JSON.parse(JSON.stringify(result[0]));
-						if (users[result.f_id_usuario] == null) {
-							users[result.f_id_usuario] = {
-								id: result.f_id_usuario,
-								sid: socket.id,
-								token: result.token
-							}
-							socket.handshake.session.userdata = result;
-							socket.handshake.session.chats = {};
-							socket.handshake.session.save();
-							sockets[socket.id] = result['f_id_usuario'];
-							console.log('No registered..\n');
-						} else {
-							users[result['f_id_usuario']].sid = socket.id;
-							console.log('Ya regsitrado');
-						}
-						model.Chats(result['f_id_usuario'], (chats) => {
-							if (chats) {
-								socket.emit('chats', chats);
-							}
-						});
-					}
-				} else {
-					console.log("User not registred!!..");
+		socket.on('Login', (data) => {
+			//console.log(data);
+			if (users[socket.decoded_token.data.id] == null) {
+				users[socket.decoded_token.data.id] = {
+					id: socket.decoded_token.data.id,
+					sid: socket.id
 				}
-
-			});
+				socket.handshake.session.userdata = socket.decoded_token.data;
+				socket.handshake.session.chats = {};
+				socket.handshake.session.save();
+				sockets[socket.id] = socket.decoded_token.data.id;
+				console.log('No registered..\n');
+			} else {
+				users[socket.decoded_token.data.id].sid = socket.id;
+				console.log('Ya regsitrado');
+			}
+		});
+		socket.on('Chats', (data, callback) => {
+			chat.getChats(socket.decoded_token.data.id, callback); 
 		});
 
 		socket.on('Chat', (data) => {
@@ -104,7 +99,7 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('Sales', (data) => {
 			console.log('Sales .... ');
-			model.Sales( sockets[socket.id] , (Sales)=>{
+			model.Sales(sockets[socket.id], (Sales) => {
 				if (Sales.length != 0) {
 					socket.emit('Sales', Sales);
 				} else {
@@ -115,7 +110,7 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('Sale', (data) => {
 			console.log('Sale .... ', data);
-			model.Sale(  sockets[socket.id], data.venta , (Sale)=>{
+			model.Sale(sockets[socket.id], data.venta, (Sale) => {
 				if (Sale.length != 0) {
 					socket.emit('Sale', Sale[0]);
 				} else {
@@ -168,6 +163,7 @@ module.exports = function (server, session, sharedsession) {
 				}
 			});
 		});
+
 		socket.on('GetMessages', function (data) {
 			if (data.message && data.chat) {
 				model.GetMessages(data, (messages) => {
@@ -207,7 +203,7 @@ module.exports = function (server, session, sharedsession) {
 					random = Math.floor((Math.random() * 1000) + 1);
 					let name = data.chat + "-" + random + "-" + data.name;
 
-					fs.writeFile( ( process.env.temp + "/" + name), fileBuffer, (err) => {
+					fs.writeFile((process.env.temp + "/" + name), fileBuffer, (err) => {
 						socket.handshake.session.chats[data.chat].files[data.name] = {
 							name: data.name,
 							path: name,
@@ -218,7 +214,7 @@ module.exports = function (server, session, sharedsession) {
 						delete files[data.chat][data.name];
 						if (err) return socket.emit('upload error');
 						socket.emit('end upload');
-					}); 
+					});
 
 					console.log("Terminó de subirse el archivo:" + data.name);
 					socket.emit('end upload');
@@ -255,10 +251,12 @@ module.exports = function (server, session, sharedsession) {
 				}
 			}
 		});
+		
 		socket.on('disconnect', () => {
 			delete users[sockets[socket.id]];
 			delete sockets[socket.id];
 		});
+
 	});
 	return io;
 };
