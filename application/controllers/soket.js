@@ -25,11 +25,12 @@ module.exports = function (server, session, sharedsession) {
 		handshake: true
 	}));
 	io.on('connection', function (socket) {
-		console.log('New user connected by WebSockets \n');
-		console.log('Usuario:', socket.decoded_token.data.nombre);
+		//console.log('New user connected by WebSockets \n');
+		console.log('Usuario:', socket.decoded_token.data.nombre );
+		chat.login(socket.id, socket.decoded_token.data);
 
 		socket.on('Login', (data) => {
-			//console.log(data);
+			//console.log(dat 
 			if (users[socket.decoded_token.data.id] == null) {
 				users[socket.decoded_token.data.id] = {
 					id: socket.decoded_token.data.id,
@@ -39,16 +40,16 @@ module.exports = function (server, session, sharedsession) {
 				socket.handshake.session.chats = {};
 				socket.handshake.session.save();
 				sockets[socket.id] = socket.decoded_token.data.id;
-				console.log('No registered..\n');
+				//console.log('No registered..\n');
 			} else {
 				users[socket.decoded_token.data.id].sid = socket.id;
 				console.log('Ya regsitrado');
 			}
 		});
 		socket.on('Chats', (data, callback) => {
-			chat.getChats(socket.decoded_token.data.id, callback); 
+			chat.getChats(socket.decoded_token.data.id, callback);
 		});
-
+ 
 		socket.on('Chat', (data) => {
 			model.Messages(data.id, (messages) => {
 				//console.log( messages );
@@ -79,14 +80,14 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('ResetCounter', (data) => {
 			console.log('ResetCounter');
-			if (data.id, socket.handshake.session.userdata["f_id_usuario"]) {
-				model.ResetCounter(data.id, socket.handshake.session.userdata["f_id_usuario"]);
+			if (data.id, socket.decoded_token.data.id) {
+				model.ResetCounter(data.id, socket.decoded_token.data.id);
 			}
 		});
 
 		socket.on('Purchases', () => {
 			console.log('Purchases .... ');
-			model.Purchases(sockets[socket.id], (purchases) => {
+			model.Purchases(socket.decoded_token.data.id, (purchases) => {
 				if (purchases.length != 0) {
 					socket.emit('Purchases', purchases);
 				} else {
@@ -97,71 +98,71 @@ module.exports = function (server, session, sharedsession) {
 
 		});
 
-		socket.on('Sales', (data) => {
-			console.log('Sales .... ');
-			model.Sales(sockets[socket.id], (Sales) => {
-				if (Sales.length != 0) {
-					socket.emit('Sales', Sales);
-				} else {
-					socket.emit('Sales', {});
-				}
-			});
+		socket.on('Sales', (data, callback) => {
+			console.log('Sales ....', data);
+			chat.getSales(socket.decoded_token.data.id, callback);
 		});
 
-		socket.on('Sale', (data) => {
+		socket.on('Sale', (data, callback) => {
+			chat.getSale(socket.decoded_token.data.id, data.venta, callback);
 			console.log('Sale .... ', data);
-			model.Sale(sockets[socket.id], data.venta, (Sale) => {
-				if (Sale.length != 0) {
-					socket.emit('Sale', Sale[0]);
-				} else {
-					socket.emit('Sale', {});
-				}
-			});
 		});
 
-		socket.on('message', function (data, archivos) {
+		socket.on('Message', (data, callback) => {
 			console.log(data);
 			//transmitter, receiver, message, ip, files, callback 
-			model.PrivateMessage(socket.handshake.session.userdata['f_id_usuario'], data.reciver, data.mensaje, socket.handshake.session.userdata['ip'], data.files, (query) => {
-				console.log(data);
-				let res;
-				console.log(socket.handshake.session.chats[query.idInbox]);
-				if (socket.handshake.session.chats[query.idInbox]) {
-					if (socket.handshake.session.chats[query.idInbox].files) {
-						console.log("tenemos archivos ");
-						model.PutFiles(socket.handshake.session.chats[query.idInbox].files, query.idInbox, query.idMessage, (savedFiles) => {
-							delete socket.handshake.session.chats[query.idInbox];
-							console.log(savedFiles);
-							res = {
-								idChat: query.idInbox,
-								idMessage: query.idMessage,
-								message: data.mensaje,
-								transmitter: socket.handshake.session.userdata['f_id_usuario'],
-								files: savedFiles,
-								date: new Date()
-							}
-							socket.emit('message', res);
-							if (users[data.reciver] != undefined) {
-								socket.broadcast.to(users[data.reciver].sid).emit('new message', res);
-							}
-						})
-					};
-				} else {
-					console.log(" No Files: ", socket.handshake.session.chats);
-					res = {
-						idChat: query.idInbox,
-						idMessage: query.idMessage,
-						message: data.mensaje,
-						transmitter: socket.handshake.session.userdata['f_id_usuario'],
-						date: new Date(),
-						files: {}
-					}
-					if (users[data.reciver] != undefined) {
-						socket.broadcast.to(users[data.reciver].sid).emit('new message', res);
-					}
-					socket.emit('message', res);
+			let idMessage = chat.sendPrivateMessage(socket.decoded_token.data.id, data.reciver, data.mensaje, socket.handshake.address, data.files);
+			if (idMessage) {
+				let res = {
+					idChat: idMessage.idInbox,
+					idMessage: idMessage.idMessage,
+					message: data.mensaje,
+					transmitter: socket.decoded_token.data.id,
+					date: new Date(),
+					files: {}
 				}
-			});
+				callback(res);
+			}
+			// model.PrivateMessage(socket.decoded_token.data.id, data.reciver, data.mensaje, socket.handshake.address, data.files, (query) => {
+			// 	//console.log(socket);
+			// 	let res;
+			// 	//console.log(socket.handshake.session.chats[query.idInbox]);
+			// 	if (socket.handshake.session.chats[query.idInbox]) {
+			// 		if (socket.handshake.session.chats[query.idInbox].files) {
+			// 			console.log("tenemos archivos ");
+			// 			model.PutFiles(socket.handshake.session.chats[query.idInbox].files, query.idInbox, query.idMessage, (savedFiles) => {
+			// 				delete socket.handshake.session.chats[query.idInbox];
+			// 				console.log(savedFiles);
+			// 				res = {
+			// 					idChat: query.idInbox,
+			// 					idMessage: query.idMessage,
+			// 					message: data.mensaje,
+			// 					transmitter: socket.decoded_token.data.id,
+			// 					files: savedFiles,
+			// 					date: new Date()
+			// 				}
+			// 				socket.emit('message', res);
+			// 				if (users[data.reciver] != undefined) {
+			// 					socket.broadcast.to(users[data.reciver].sid).emit('new message', res);
+			// 				}
+			// 			})
+			// 		};
+			// 	} else {
+			// 		console.log(" No Files: ", socket.handshake.session.chats);
+			// 		res = {
+			// 			idChat: query.idInbox,
+			// 			idMessage: query.idMessage,
+			// 			message: data.mensaje,
+			// 			transmitter: socket.handshake.session.userdata['f_id_usuario'],
+			// 			date: new Date(),
+			// 			files: {}
+			// 		}
+			// 		if (users[data.reciver] != undefined) {
+			// 			socket.broadcast.to(users[data.reciver].sid).emit('new message', res);
+			// 		}
+			// 		socket.emit('message', res);
+			// 	}
+			// });
 		});
 
 		socket.on('GetMessages', function (data) {
@@ -177,6 +178,7 @@ module.exports = function (server, session, sharedsession) {
 
 		socket.on('slice upload', (data) => {
 			console.log("New slice file:", data.name);
+			//chat.slice( socket.decoded_token.data.id , socket.id , data.chat  );
 			if (!socket.handshake.session.chats[data.chat]) {
 				socket.handshake.session.chats[data.chat] = {};
 				socket.handshake.session.chats[data.chat].id = data.chat;
@@ -251,8 +253,11 @@ module.exports = function (server, session, sharedsession) {
 				}
 			}
 		});
-		
+
 		socket.on('disconnect', () => {
+
+			chat.logout(socket.id , socket.decoded_token.data.id);
+
 			delete users[sockets[socket.id]];
 			delete sockets[socket.id];
 		});
